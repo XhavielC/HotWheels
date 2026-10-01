@@ -931,8 +931,8 @@ for (let i = 0; i < MINI_GALAXY_COUNT; i++) {
   miniGalaxies.push(sp);
 }
 
-// ================= SISTEMA DE COMETAS / ESTRELLAS FUGACES =================
-// Cometa con cabeza brillante y estela luminosa que cruza el cielo cada 20-30s
+// ================= SISTEMA CÓSMICO DE ESTRELLAS FUGACES ALEATORIAS =================
+// Eventos aleatorios y orgánicos: ráfagas episódicas de 1, 2 o 3 estrellas fugaces
 const cometGroup = new THREE.Group();
 scene.add(cometGroup);
 
@@ -942,139 +942,220 @@ function createCometHeadTexture() {
   const ctx = c.getContext('2d');
   const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
   g.addColorStop(0, 'rgba(255, 255, 255, 1)');
-  g.addColorStop(0.25, 'rgba(180, 240, 255, 0.9)');
-  g.addColorStop(0.6, 'rgba(0, 160, 255, 0.3)');
+  g.addColorStop(0.25, 'rgba(190, 245, 255, 0.95)');
+  g.addColorStop(0.55, 'rgba(0, 160, 255, 0.35)');
   g.addColorStop(1, 'rgba(0, 0, 0, 0)');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 64, 64);
   return new THREE.CanvasTexture(c);
 }
 
-const cometHead = new THREE.Sprite(new THREE.SpriteMaterial({
-  map: createCometHeadTexture(),
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false
-}));
-cometHead.scale.set(48, 48, 1);
-cometHead.visible = false;
-cometGroup.add(cometHead);
+const cometSharedTexture = createCometHeadTexture();
+const COMET_POOL_SIZE = 6;
+const COMET_TRAIL_LENGTH = 30;
 
-// Estela del cometa con gradiente degradado
-const TRAIL_LENGTH = 28;
-const trailGeo = new THREE.BufferGeometry();
-const trailPositions = new Float32Array(TRAIL_LENGTH * 3);
-const trailColors = new Float32Array(TRAIL_LENGTH * 3);
-for (let i = 0; i < TRAIL_LENGTH; i++) {
-  const alpha = 1.0 - (i / TRAIL_LENGTH);
-  trailColors[i * 3 + 0] = 0.5 + 0.5 * alpha;
-  trailColors[i * 3 + 1] = 0.8 + 0.2 * alpha;
-  trailColors[i * 3 + 2] = 1.0;
-}
-trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-trailGeo.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+class ShootingStar {
+  constructor() {
+    this.head = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: cometSharedTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      opacity: 0
+    }));
+    this.head.visible = false;
+    cometGroup.add(this.head);
 
-const trailMat = new THREE.LineBasicMaterial({
-  vertexColors: true,
-  transparent: true,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-  linewidth: 3,
-  opacity: 0
-});
-const cometTrail = new THREE.Line(trailGeo, trailMat);
-cometGroup.add(cometTrail);
-
-const cometState = {
-  active: false,
-  timer: 5.0, // El primer cometa cruza a los 5 segundos para apreciarlo de inmediato
-  progress: 0,
-  duration: 2.2,
-  startPos: new THREE.Vector3(),
-  endPos: new THREE.Vector3(),
-  currentPos: new THREE.Vector3(),
-  history: []
-};
-
-function launchComet() {
-  cometState.active = true;
-  cometState.progress = 0;
-  cometState.duration = 1.9 + Math.random() * 0.7; // 1.9s a 2.6s
-  cometState.history = [];
-
-  // Posición inicial en el espacio cósmico
-  const th = Math.random() * Math.PI * 2;
-  const ph = 0.35 + Math.random() * 0.8;
-  const r = 850 + Math.random() * 200;
-
-  cometState.startPos.set(
-    r * Math.sin(ph) * Math.cos(th),
-    r * Math.cos(ph),
-    r * Math.sin(ph) * Math.sin(th)
-  );
-
-  // Trayectoria elegante cruzando el cielo
-  const dir = new THREE.Vector3(
-    (Math.random() - 0.5) * 1.5,
-    -0.4 - Math.random() * 0.6,
-    (Math.random() - 0.5) * 1.5
-  ).normalize();
-
-  const distance = 800 + Math.random() * 400;
-  cometState.endPos.copy(cometState.startPos).addScaledVector(dir, distance);
-  cometHead.visible = true;
-}
-
-function updateComet(dt) {
-  if (!cometState.active) {
-    cometState.timer -= dt;
-    if (cometState.timer <= 0) {
-      launchComet();
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(COMET_TRAIL_LENGTH * 3);
+    const col = new Float32Array(COMET_TRAIL_LENGTH * 3);
+    for (let i = 0; i < COMET_TRAIL_LENGTH; i++) {
+      const alpha = 1.0 - (i / COMET_TRAIL_LENGTH);
+      col[i * 3 + 0] = 0.55 + 0.45 * alpha;
+      col[i * 3 + 1] = 0.8 + 0.2 * alpha;
+      col[i * 3 + 2] = 1.0;
     }
-    return;
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+
+    this.trailMat = new THREE.LineBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      linewidth: 3,
+      opacity: 0
+    });
+    this.trail = new THREE.Line(geo, this.trailMat);
+    this.trail.visible = false;
+    cometGroup.add(this.trail);
+
+    this.active = false;
+    this.delay = 0;
+    this.progress = 0;
+    this.duration = 2.0;
+    this.startPos = new THREE.Vector3();
+    this.endPos = new THREE.Vector3();
+    this.currentPos = new THREE.Vector3();
+    this.history = [];
+    this.baseScale = 46;
   }
 
-  cometState.progress += dt / cometState.duration;
-  const p = cometState.progress;
-
-  if (p >= 1.0) {
-    cometState.active = false;
-    cometHead.visible = false;
-    trailMat.opacity = 0;
-    // Siguiente cometa aleatorio cada 20 a 30 segundos
-    cometState.timer = 20.0 + Math.random() * 12.0;
-    return;
+  spawn(start, end, duration, delay = 0, scale = 46) {
+    this.startPos.copy(start);
+    this.endPos.copy(end);
+    this.currentPos.copy(start);
+    this.duration = duration;
+    this.delay = delay;
+    this.progress = 0;
+    this.history = [];
+    this.baseScale = scale;
+    this.head.scale.set(scale, scale, 1);
+    this.active = true;
+    this.head.visible = false;
+    this.trail.visible = false;
   }
 
-  // Curva de visibilidad (aparece, brilla y se desvanece suavemente)
-  let opacity = 1.0;
-  if (p < 0.18) {
-    opacity = p / 0.18;
-  } else if (p > 0.65) {
-    opacity = 1.0 - (p - 0.65) / 0.35;
-  }
-  cometHead.material.opacity = opacity;
-  trailMat.opacity = opacity * 0.88;
+  update(dt) {
+    if (!this.active) return;
 
-  // Desplazamiento del cometa
-  cometState.currentPos.lerpVectors(cometState.startPos, cometState.endPos, p);
-  cometHead.position.copy(cometState.currentPos);
+    if (this.delay > 0) {
+      this.delay -= dt;
+      if (this.delay > 0) return;
+    }
 
-  // Registro de la cola luminosa
-  cometState.history.unshift(cometState.currentPos.clone());
-  if (cometState.history.length > TRAIL_LENGTH) {
-    cometState.history.pop();
-  }
+    this.head.visible = true;
+    this.trail.visible = true;
+    this.progress += dt / this.duration;
+    const p = this.progress;
 
-  const posArr = trailGeo.attributes.position.array;
-  for (let i = 0; i < TRAIL_LENGTH; i++) {
-    const pt = cometState.history[i] || cometState.currentPos;
-    posArr[i * 3 + 0] = pt.x;
-    posArr[i * 3 + 1] = pt.y;
-    posArr[i * 3 + 2] = pt.z;
+    if (p >= 1.0) {
+      this.active = false;
+      this.head.visible = false;
+      this.trail.visible = false;
+      this.trailMat.opacity = 0;
+      return;
+    }
+
+    // Curva de brillo cósmico envolvente
+    let opacity = 1.0;
+    if (p < 0.16) {
+      opacity = p / 0.16;
+    } else if (p > 0.62) {
+      opacity = Math.max(0, 1.0 - (p - 0.62) / 0.38);
+    }
+
+    this.head.material.opacity = opacity;
+    this.trailMat.opacity = opacity * 0.9;
+
+    // Movimiento rápido
+    this.currentPos.lerpVectors(this.startPos, this.endPos, p);
+    this.head.position.copy(this.currentPos);
+
+    // Registro de la cola luminosa
+    this.history.unshift(this.currentPos.clone());
+    if (this.history.length > COMET_TRAIL_LENGTH) {
+      this.history.pop();
+    }
+
+    const posArr = this.trail.geometry.attributes.position.array;
+    for (let i = 0; i < COMET_TRAIL_LENGTH; i++) {
+      const pt = this.history[i] || this.currentPos;
+      posArr[i * 3 + 0] = pt.x;
+      posArr[i * 3 + 1] = pt.y;
+      posArr[i * 3 + 2] = pt.z;
+    }
+    this.trail.geometry.attributes.position.needsUpdate = true;
   }
-  trailGeo.attributes.position.needsUpdate = true;
 }
+
+const cometPool = [];
+for (let i = 0; i < COMET_POOL_SIZE; i++) {
+  cometPool.push(new ShootingStar());
+}
+
+// Administrador de eventos cósmicos aleatorios (ráfagas de 1, 2 o 3 estrellas fugaces)
+const cosmicEventManager = {
+  timer: 2.2, // Primer evento rápido al cargar para deslumbrar
+
+  nextInterval() {
+    // Tiempos orgánicos e impredecibles:
+    // 35% de probabilidad de eco rápido (3.0s a 5.5s), 65% de pausa cósmica profunda (7.0s a 16.0s)
+    if (Math.random() < 0.35) {
+      return 3.0 + Math.random() * 2.5;
+    }
+    return 7.0 + Math.random() * 9.0;
+  },
+
+  triggerEvent() {
+    // Cantidad aleatoria: 1, 2 o 3 estrellas fugaces
+    const roll = Math.random();
+    let count = 1;
+    if (roll > 0.80) {
+      count = 3; // Lluvia / tríada fugaz
+    } else if (roll > 0.50) {
+      count = 2; // Pareja cósmica
+    }
+
+    // Región de origen en la cúpula celestial
+    const baseTheta = Math.random() * Math.PI * 2;
+    const basePhi = 0.35 + Math.random() * 0.75;
+    const baseRadius = 820 + Math.random() * 220;
+
+    // Vector de radiante principal cruzando hacia abajo/oblicuo
+    const baseDir = new THREE.Vector3(
+      (Math.random() - 0.5) * 1.6,
+      -0.45 - Math.random() * 0.55,
+      (Math.random() - 0.5) * 1.6
+    ).normalize();
+
+    let launched = 0;
+    for (let i = 0; i < cometPool.length && launched < count; i++) {
+      const star = cometPool[i];
+      if (!star.active) {
+        // Dispersión angular natural para efecto enjambre/radiante
+        const angleSpreadTheta = (Math.random() - 0.5) * 0.35;
+        const angleSpreadPhi = (Math.random() - 0.5) * 0.25;
+        const r = baseRadius + (Math.random() - 0.5) * 100;
+        const th = baseTheta + angleSpreadTheta;
+        const ph = THREE.MathUtils.clamp(basePhi + angleSpreadPhi, 0.25, 1.35);
+
+        const start = new THREE.Vector3(
+          r * Math.sin(ph) * Math.cos(th),
+          r * Math.cos(ph),
+          r * Math.sin(ph) * Math.sin(th)
+        );
+
+        const dir = baseDir.clone().add(new THREE.Vector3(
+          (Math.random() - 0.5) * 0.18,
+          (Math.random() - 0.5) * 0.12,
+          (Math.random() - 0.5) * 0.18
+        )).normalize();
+
+        const distance = 850 + Math.random() * 450;
+        const end = start.clone().addScaledVector(dir, distance);
+        const duration = 1.6 + Math.random() * 0.8;
+        const delay = launched * (0.18 + Math.random() * 0.32); // Desfase sutil y orgánico
+        const scale = 38 + Math.random() * 20;
+
+        star.spawn(start, end, duration, delay, scale);
+        launched++;
+      }
+    }
+  },
+
+  update(dt) {
+    this.timer -= dt;
+    if (this.timer <= 0) {
+      this.triggerEvent();
+      this.timer = this.nextInterval();
+    }
+
+    for (let i = 0; i < cometPool.length; i++) {
+      cometPool[i].update(dt);
+    }
+  }
+};
 
 // ================= EL CORAZÓN 3D EXPLOSIVO Y ELEGANTE =================
 const heartGroup = new THREE.Group();
@@ -1736,8 +1817,8 @@ function animate() {
     mg.material.rotation += mg.userData.rotSpeed;
   });
 
-  // Animación del cometa / estrella fugaz periódica
-  updateComet(dt);
+  // Animación cósmica de estrellas fugaces y cometas aleatorios
+  cosmicEventManager.update(dt);
 
   // Animación orbital de frases con oscilación suave
   textGroup.children.forEach(sp => {
