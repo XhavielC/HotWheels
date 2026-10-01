@@ -1,0 +1,5 @@
+# Ignorar archivos temporales
+public-url.txt
+node_modules/
+.DS_Store
+Thumbs.db

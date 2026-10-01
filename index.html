@@ -1,0 +1,1797 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<title>Galaxia Corazón Hot Wheels</title>
+<meta name="description" content="Dedicatoria interactiva 3D con Galaxia, Corazón neón palpitante, autos Hot Wheels y frases personalizables.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Indie+Flower&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    background: #020208;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    font-family: 'Indie Flower', cursive, sans-serif;
+  }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  /* Encabezado Principal Neón */
+  #main-title {
+    position: fixed;
+    top: 30px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    font-size: clamp(1.6rem, 3.8vw, 2.7rem);
+    color: #cdebff;
+    text-shadow: 0 0 12px #0099ff, 0 0 24px #00cfff, 0 0 40px #0055ff;
+    z-index: 10;
+    pointer-events: none;
+    text-align: center;
+    padding: 0 15px;
+    line-height: 1.25;
+    letter-spacing: 0.5px;
+  }
+  #subtitle {
+    display: block;
+    font-size: clamp(0.9rem, 2vw, 1.2rem);
+    color: #8be4ff;
+    margin-top: 5px;
+    text-shadow: 0 0 10px rgba(0, 207, 255, 0.75);
+    letter-spacing: 1px;
+  }
+
+  /* Pantalla de Inicio / Click para arrancar */
+  #start-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, #06152d 0%, #01040a 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: #fff;
+    z-index: 9999;
+    padding: 20px;
+    cursor: pointer;
+    transition: opacity 0.8s ease, visibility 0.8s ease;
+  }
+  #start-screen.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  #start-heart {
+    font-size: clamp(76px, 22vmin, 136px);
+    line-height: 1;
+    display: block;
+    filter: drop-shadow(0 0 20px rgba(0, 153, 255, 0.9)) drop-shadow(0 0 50px rgba(0, 207, 255, 0.6)) drop-shadow(0 0 80px rgba(30, 144, 255, 0.4));
+    animation: heartExplode 1.25s cubic-bezier(0.18, 0.89, 0.32, 1.28) infinite;
+    transform-origin: 50% 55%;
+  }
+  @keyframes heartExplode {
+    0%, 100% { transform: scale(1); }
+    15% { transform: scale(1.22); }
+    28% { transform: scale(1.04); }
+    42% { transform: scale(1.15); }
+    60% { transform: scale(1); }
+  }
+  #start-text {
+    font-size: clamp(1.4rem, 4vw, 2.1rem);
+    color: #cdebff;
+    text-shadow: 0 0 12px #0099ff, 0 0 24px #00cfff;
+    text-align: center;
+    margin-top: clamp(18px, 4vh, 32px);
+    animation: parpadeo 2.2s ease-in-out infinite;
+  }
+  #start-subtext {
+    font-size: clamp(0.95rem, 2.5vw, 1.15rem);
+    color: #7ed8ff;
+    margin-top: 8px;
+    opacity: 0.85;
+  }
+  @keyframes parpadeo {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+  }
+
+  /* Botón de Carta / Mensaje Sorpresa */
+  #msg-button {
+    position: fixed;
+    right: 22px;
+    bottom: 22px;
+    z-index: 1800;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #38bdf8, #0284c7 60%, #03487a);
+    border: 2px solid #bae6fd;
+    cursor: pointer;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.8), 0 4px 18px rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: msgBeat 1.8s ease-in-out infinite;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+  #msg-button:hover {
+    transform: scale(1.12);
+    box-shadow: 0 0 35px rgba(56, 189, 248, 1);
+  }
+  @keyframes msgBeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+  }
+
+  /* Modal de la Carta */
+  #msg-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2500;
+    background: radial-gradient(circle at center, rgba(3, 20, 48, 0.72) 0%, rgba(1, 8, 20, 0.88) 100%);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    padding: 20px;
+    overflow: hidden;
+  }
+  #msg-overlay.visible {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #meteor-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    filter: blur(1.5px);
+    opacity: 0.92;
+  }
+  #msg-card {
+    max-width: 600px;
+    width: 100%;
+    max-height: 84vh;
+    overflow-y: auto;
+    background: linear-gradient(165deg, rgba(3, 27, 56, 0.95), rgba(1, 13, 28, 0.97));
+    border: 1.5px solid rgba(56, 189, 248, 0.5);
+    border-radius: 24px;
+    padding: 38px 28px;
+    box-shadow: 0 0 50px rgba(56, 189, 248, 0.35), inset 0 0 25px rgba(56, 189, 248, 0.15);
+    color: #cdebff;
+    transform: translateY(22px) scale(0.95);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    z-index: 2;
+  }
+  #msg-overlay.visible #msg-card {
+    transform: translateY(0) scale(1);
+  }
+  #msg-card h2 {
+    text-align: center;
+    margin: 0 0 20px;
+    font-size: clamp(1.8rem, 3.5vw, 2.3rem);
+    color: #ffffff;
+    text-shadow: 0 0 12px #0099ff, 0 0 24px #00cfff;
+  }
+  #msg-card p {
+    line-height: 1.8;
+    font-size: clamp(1.1rem, 2.5vw, 1.25rem);
+    margin: 0 0 16px;
+    text-shadow: 0 0 6px rgba(0, 153, 255, 0.3);
+  }
+  #msg-close {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #7dd3fc;
+    font-size: 1.6rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+    transition: color 0.2s, transform 0.2s;
+  }
+  #msg-close:hover {
+    color: #ffffff;
+    transform: scale(1.2);
+  }
+
+  /* Botón de Sonido Flotante */
+  #sound-btn {
+    position: fixed;
+    left: 22px;
+    bottom: 22px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(3, 27, 56, 0.85);
+    border: 1.5px solid rgba(56, 189, 248, 0.45);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1800;
+    backdrop-filter: blur(6px);
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s, opacity 0.25s;
+    box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+  }
+  #sound-btn:hover {
+    transform: scale(1.12);
+    background: rgba(14, 116, 144, 0.95);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.7);
+  }
+  #sound-btn.playing {
+    border-color: #38bdf8;
+    box-shadow: 0 0 20px rgba(56, 189, 248, 0.75), inset 0 0 10px rgba(56, 189, 248, 0.35);
+  }
+  #sound-btn svg {
+    width: 24px;
+    height: 24px;
+    fill: #bae6fd;
+    transition: fill 0.2s;
+  }
+
+  @media (max-width: 600px) {
+    #msg-button { width: 52px; height: 52px; bottom: 16px; right: 16px; }
+    #sound-btn { width: 44px; height: 44px; bottom: 16px; left: 16px; }
+    #msg-card { padding: 28px 18px; border-radius: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+
+<div id="main-title">
+  <div id="title-text"></div>
+  <span id="subtitle"></span>
+</div>
+
+<div id="start-screen">
+  <div id="start-heart" aria-hidden="true">💙</div>
+  <div id="start-text">Toca para iniciar</div>
+  <div id="start-subtext">Sube el volumen para una mejor experiencia 🎧</div>
+</div>
+
+<button id="sound-btn" type="button" aria-label="Silenciar o reactivar música" title="Pausar / Reproducir música">
+  <svg id="sound-icon" viewBox="0 0 24 24">
+    <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+  </svg>
+</button>
+
+<button id="msg-button" type="button" aria-label="Ver dedicatoria sorpresa" title="Abrir dedicatoria">
+  <span style="font-size: 30px; line-height: 1; display: block; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.4));">💌</span>
+</button>
+
+<div id="msg-overlay">
+  <canvas id="meteor-canvas"></canvas>
+  <div id="msg-card">
+    <button id="msg-close" aria-label="Cerrar dedicatoria">✕</button>
+    <h2>Para ti con todo mi amor 💙</h2>
+    <div id="msg-body"></div>
+  </div>
+</div>
+
+<audio id="audio" loop preload="auto" playsinline webkit-playsinline>
+  <source src="musica.mp3" type="audio/mp3">
+</audio>
+
+<!-- Datos integrados de autos Hot Wheels en Base64 (Sin errores de CORS) -->
+<script src="cars-data.js"></script>
+
+<!-- Three.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.148.0/build/three.min.js"></script>
+
+<script>
+/* ==========================================================================
+   CONFIGURACIÓN PERSONALIZABLE (Edita tus textos, frases y fotos aquí)
+   ========================================================================== */
+const CONFIG = {
+  titulo: "Feliz Día de los Carritos Hot Wheels",
+  subtitulo: "Aceleras mi corazón a mil por hora ✨",
+  
+  // Archivo de música local o enlace web
+  musica: "musica.mp3",
+  musicaFallback: "https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3?filename=romantic-ambient-111354.mp3",
+
+  // Ritmo en BPM (Beats Por Minuto) de la canción
+  // musica.mp3 original tiene 76 BPM
+  // Si colocas otra canción, puedes poner aquí su BPM aproximado (ej: 75, 80, 95, 120)
+  bpm: 76,
+
+  // Carta o Dedicatoria al pulsar el botón sorpresa
+  mensaje_titulo: "Para ti con todo mi amor 💙",
+  mensaje_texto: 
+    "Hoy celebro tenerte en mi vida y cada kilómetro recorrido a tu lado.\n\n" +
+    "Dicen que los autos Hot Wheels despiertan pasiones y recuerdos únicos, pero tú despiertas en mí los mejores sentimientos del mundo.\n\n" +
+    "Gracias por ser mi copiloto favorito, por cada risa, cada aventura y por acelerar mi corazón a mil por hora todos los días.\n\n" +
+    "¡Eres mi mejor destino y mi mayor premio! Te quiero muchísimo ✨",
+
+  // Frases que orbitan alrededor del corazón 3D (Textos puros, limpios y románticos)
+  frases: [
+    "Contigo la carretera es mejor",
+    "Acelerando hacia lo que viene",
+    "Gracias por ser tú",
+    "Eres mi copiloto favorito",
+    "Contigo hasta lo simple brilla",
+    "Feliz día para ti",
+    "Contigo siempre a mil por hora",
+    "Eres único",
+    "Me alegra conocerte",
+    "Contigo el día pesa menos",
+    "Un amor que no necesita frenos",
+    "Tu risa ilumina mis días",
+    "Hoy celebro tenerte cerca",
+    "Apareces cuando más hace falta",
+    "Coleccionando momentos a tu lado",
+    "Mi corazón late a máxima velocidad",
+    "Contigo todo destino es perfecto",
+    "Gracias por estar siempre ahí",
+    "Eres mi modelo más exclusivo",
+    "En esta carrera tú eres mi meta",
+    "No necesito un motivo para quererte",
+    "Quiero que sepas cuánto importas",
+    "Gracias por sumar luz a mi vida",
+    "Aquí siempre tienes mi corazón",
+    "Nuestra historia corre a toda velocidad",
+    "Tú eres mi curva favorita",
+    "El mejor viaje es contigo",
+    "Juntos somos imparables"
+  ],
+
+  // Rutas de imágenes de respaldo si cars-data.js no estuviese presente
+  fotos: [
+    "img1.png", "img2.png", "img3.png", "img4.png",
+    "img5.png", "img6.png", "img7.png", "img8.png"
+  ]
+};
+
+// ================= DOM Y CONFIGURACIÓN INICIAL =================
+document.getElementById('title-text').textContent = CONFIG.titulo;
+document.getElementById('subtitle').textContent = CONFIG.subtitulo;
+
+// Llenar la carta sorpresa
+const msgButton = document.getElementById('msg-button');
+const msgOverlay = document.getElementById('msg-overlay');
+const msgClose = document.getElementById('msg-close');
+const msgBody = document.getElementById('msg-body');
+
+CONFIG.mensaje_texto.split(/\n\s*\n/).forEach(pText => {
+  const p = document.createElement('p');
+  p.textContent = pText.trim();
+  msgBody.appendChild(p);
+});
+
+msgButton.addEventListener('click', () => {
+  msgOverlay.classList.add('visible');
+  startMeteorShower();
+});
+msgClose.addEventListener('click', () => {
+  msgOverlay.classList.remove('visible');
+  stopMeteorShower();
+});
+msgOverlay.addEventListener('click', (e) => {
+  if (e.target === msgOverlay) {
+    msgOverlay.classList.remove('visible');
+    stopMeteorShower();
+  }
+});
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && msgOverlay.classList.contains('visible')) {
+    msgOverlay.classList.remove('visible');
+    stopMeteorShower();
+  }
+});
+
+// ================= LLUVIA DE METEORITOS Y COMETAS (SOLO AL ABRIR LA CARTA) =================
+const meteorCanvas = document.getElementById('meteor-canvas');
+const mCtx = meteorCanvas ? meteorCanvas.getContext('2d') : null;
+let meteorAnimationId = null;
+let meteors = [];
+let meteorSparks = [];
+
+function resizeMeteorCanvas() {
+  if (!meteorCanvas || !mCtx) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  meteorCanvas.width = window.innerWidth * dpr;
+  meteorCanvas.height = window.innerHeight * dpr;
+  mCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+class LetterMeteor {
+  constructor(w, h, isInitial = false) {
+    this.reset(w, h, isInitial);
+  }
+
+  reset(w, h, isInitial = false) {
+    // Escala de profundidad (0 = cometa tenue y lejano, 1 = cometa estelar visible)
+    this.depth = Math.random();
+    this.speed = 8.5 + this.depth * 9.5;
+    // Ángulo de caída coordinado en diagonal (~128°)
+    this.angle = Math.PI * (0.71 + (Math.random() - 0.5) * 0.06);
+    this.vx = Math.cos(this.angle) * this.speed;
+    this.vy = Math.sin(this.angle) * this.speed;
+
+    this.length = 85 + this.depth * 135;
+    this.lineWidth = 1.2 + this.depth * 1.8;
+
+    const colorType = Math.random();
+    if (colorType < 0.45) {
+      this.headColor = '#ffffff';
+      this.glowColor = '#38bdf8';
+      this.tailRgb = '56, 189, 248';
+    } else if (colorType < 0.8) {
+      this.headColor = '#e0f2fe';
+      this.glowColor = '#00e5ff';
+      this.tailRgb = '0, 229, 255';
+    } else {
+      this.headColor = '#ffffff';
+      this.glowColor = '#93c5fd';
+      this.tailRgb = '147, 197, 253';
+    }
+
+    this.maxOpacity = 0.42 + this.depth * 0.46;
+    this.opacity = isInitial ? (Math.random() * this.maxOpacity) : 0;
+    this.fadingIn = true;
+
+    if (isInitial) {
+      this.x = Math.random() * (w + 350) - 150;
+      this.y = Math.random() * (h + 150) - 100;
+      this.active = true;
+      this.delay = 0;
+    } else {
+      if (Math.random() < 0.6) {
+        this.x = Math.random() * (w + 250);
+        this.y = -60 - Math.random() * 120;
+      } else {
+        this.x = w + 40 + Math.random() * 140;
+        this.y = Math.random() * (h * 0.65);
+      }
+      this.active = false;
+      this.delay = Math.floor(Math.random() * 75);
+    }
+  }
+
+  update(w, h) {
+    if (!this.active) {
+      if (this.delay > 0) {
+        this.delay--;
+        return;
+      }
+      this.active = true;
+    }
+
+    this.x += this.vx;
+    this.y += this.vy;
+
+    if (this.fadingIn) {
+      this.opacity += 0.05;
+      if (this.opacity >= this.maxOpacity) {
+        this.opacity = this.maxOpacity;
+        this.fadingIn = false;
+      }
+    }
+
+    // Pequeñas chispas estelares para los cometas más notables
+    if (this.depth > 0.55 && Math.random() < 0.35) {
+      meteorSparks.push({
+        x: this.x + (Math.random() - 0.5) * 4,
+        y: this.y + (Math.random() - 0.5) * 4,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        alpha: this.opacity * 0.75,
+        size: 0.8 + Math.random() * 1.2
+      });
+    }
+
+    if (this.x < -this.length - 80 || this.y > h + this.length + 80) {
+      this.reset(w, h, false);
+    }
+  }
+
+  draw(ctx) {
+    if (!this.active || this.opacity <= 0.01) return;
+
+    const tailX = this.x - Math.cos(this.angle) * this.length;
+    const tailY = this.y - Math.sin(this.angle) * this.length;
+
+    const grad = ctx.createLinearGradient(this.x, this.y, tailX, tailY);
+    grad.addColorStop(0, this.headColor);
+    grad.addColorStop(0.2, `rgba(${this.tailRgb}, ${this.opacity * 0.85})`);
+    grad.addColorStop(0.65, `rgba(${this.tailRgb}, ${this.opacity * 0.28})`);
+    grad.addColorStop(1, `rgba(${this.tailRgb}, 0)`);
+
+    ctx.save();
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = this.lineWidth;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = this.glowColor;
+    ctx.shadowBlur = 6 + this.depth * 6;
+
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y);
+    ctx.lineTo(tailX, tailY);
+    ctx.stroke();
+
+    ctx.fillStyle = this.headColor;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.lineWidth * 0.95, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function startMeteorShower() {
+  if (!meteorCanvas || !mCtx) return;
+  stopMeteorShower();
+  resizeMeteorCanvas();
+
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const count = 16;
+  meteors = [];
+  meteorSparks = [];
+
+  for (let i = 0; i < count; i++) {
+    meteors.push(new LetterMeteor(w, h, true));
+  }
+
+  function loop() {
+    mCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+    const curW = window.innerWidth;
+    const curH = window.innerHeight;
+
+    for (let i = 0; i < meteors.length; i++) {
+      meteors[i].update(curW, curH);
+      meteors[i].draw(mCtx);
+    }
+
+    for (let i = meteorSparks.length - 1; i >= 0; i--) {
+      const s = meteorSparks[i];
+      s.x += s.vx;
+      s.y += s.vy;
+      s.alpha -= 0.035;
+      if (s.alpha <= 0) {
+        meteorSparks.splice(i, 1);
+      } else {
+        mCtx.fillStyle = `rgba(186, 230, 253, ${s.alpha})`;
+        mCtx.beginPath();
+        mCtx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+        mCtx.fill();
+      }
+    }
+
+    meteorAnimationId = requestAnimationFrame(loop);
+  }
+
+  meteorAnimationId = requestAnimationFrame(loop);
+}
+
+function stopMeteorShower() {
+  if (meteorAnimationId) {
+    cancelAnimationFrame(meteorAnimationId);
+    meteorAnimationId = null;
+  }
+  if (meteorCanvas && mCtx) {
+    mCtx.clearRect(0, 0, meteorCanvas.width, meteorCanvas.height);
+  }
+  meteors = [];
+  meteorSparks = [];
+}
+
+window.addEventListener('resize', () => {
+  if (msgOverlay.classList.contains('visible')) {
+    resizeMeteorCanvas();
+  }
+});
+
+// ================= CONTROL DE AUDIO Y COMPÁS MUSICAL =================
+const audio = document.getElementById('audio');
+const soundBtn = document.getElementById('sound-btn');
+let isAudioPlaying = false;
+
+// Garantizar volumen al máximo
+audio.volume = 1.0;
+
+// Cargar la pista de música
+audio.src = CONFIG.musica;
+audio.load();
+
+// Respaldo automático si el archivo local tuviera algún problema de ruta
+audio.addEventListener('error', function() {
+  if (CONFIG.musicaFallback && audio.src !== CONFIG.musicaFallback) {
+    console.log("Cargando pista de música de respaldo...");
+    audio.src = CONFIG.musicaFallback;
+    audio.load();
+    if (isAudioPlaying) audio.play().catch(() => {});
+  }
+});
+
+function updateSoundButtonUI(playing) {
+  if (playing) {
+    soundBtn.classList.add('playing');
+    soundBtn.style.opacity = '1';
+    soundBtn.setAttribute('title', 'Pausar música');
+  } else {
+    soundBtn.classList.remove('playing');
+    soundBtn.style.opacity = '0.55';
+    soundBtn.setAttribute('title', 'Reproducir música');
+  }
+}
+
+function toggleAudio() {
+  if (audio.paused) {
+    audio.play().then(() => {
+      isAudioPlaying = true;
+      updateSoundButtonUI(true);
+    }).catch((err) => {
+      console.log("Error al reproducir audio:", err);
+    });
+  } else {
+    audio.pause();
+    isAudioPlaying = false;
+    updateSoundButtonUI(false);
+  }
+}
+soundBtn.addEventListener('click', toggleAudio);
+
+audio.addEventListener('play', () => {
+  isAudioPlaying = true;
+  updateSoundButtonUI(true);
+});
+audio.addEventListener('pause', () => {
+  isAudioPlaying = false;
+  updateSoundButtonUI(false);
+});
+
+// ================= ESCENA THREE.JS =================
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+
+const scene = new THREE.Scene();
+// Sin niebla (fog) para que el cosmos sea infinito, cristalino y profundo
+
+const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 12000);
+let targetDist = 310, currentDist = 310;
+let targetRotX = 0.18, targetRotY = 0;
+let rotX = 0.18, rotY = 0;
+let velX = 0, velY = 0;
+let isPointerDown = false, startX = 0, startY = 0;
+
+// ================= TEXTURA DE PARTÍCULAS RADIALES =================
+function createParticleTexture() {
+  const size = 128;
+  const c = document.createElement('canvas');
+  c.width = size;
+  c.height = size;
+  const ctx = c.getContext('2d');
+  const grad = ctx.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  grad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  grad.addColorStop(0.2, 'rgba(180, 235, 255, 0.95)');
+  grad.addColorStop(0.55, 'rgba(0, 150, 255, 0.4)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+}
+const pTexture = createParticleTexture();
+
+// ================= UNIVERSO CÓSMICO INMENSO EN 360° (PROFUNDIDAD 3D TOTAL) =================
+// Rodea toda la escena en 3D: estrellas cercanas, intermedias y lejanas (delante, detrás, arriba y abajo)
+const deepUniverseGroup = new THREE.Group();
+scene.add(deepUniverseGroup);
+
+// 1. Estrellas Cercanas y Polvo Estelar de Ambiente (R = 340 a 780)
+// Visibles en primer plano y detrás de la cámara con fuerte paralaje 3D
+(function makeNearAmbientStars() {
+  const count = 1800;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const cols = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const r = 340 + Math.random() * 440;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3 + 0] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = r * Math.cos(ph);
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+
+    const c = new THREE.Color();
+    const rand = Math.random();
+    if (rand < 0.45) {
+      c.setHex(0xffffff); // Destello diamante
+    } else if (rand < 0.8) {
+      c.setHex(0x7dd3fc); // Azul cielo brillante
+    } else {
+      c.setHex(0x38bdf8); // Cian
+    }
+    cols[i * 3 + 0] = c.r;
+    cols[i * 3 + 1] = c.g;
+    cols[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 2.8,
+    map: pTexture,
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.95
+  });
+  deepUniverseGroup.add(new THREE.Points(geo, mat));
+})();
+
+// 2. Constelaciones Intermedias y Nebulosa Suave (R = 800 a 2400)
+(function makeMidRangeUniverse() {
+  const count = 3000;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const cols = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const r = 800 + Math.pow(Math.random(), 1.2) * 1600;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3 + 0] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = r * Math.cos(ph);
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+
+    const c = new THREE.Color();
+    const rand = Math.random();
+    if (rand < 0.5) {
+      c.setHex(0xe0f2fe);
+    } else if (rand < 0.8) {
+      c.setHSL(0.56 + Math.random() * 0.08, 0.85, 0.65);
+    } else {
+      c.setHex(0xffffff);
+    }
+    cols[i * 3 + 0] = c.r;
+    cols[i * 3 + 1] = c.g;
+    cols[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 2.2,
+    map: pTexture,
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.9
+  });
+  deepUniverseGroup.add(new THREE.Points(geo, mat));
+})();
+
+// 3. Estrellas en el Infinito Cósmico (R = 2500 a 6500)
+(function makeDeepFieldCosmos() {
+  const count = 3600;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const cols = new Float32Array(count * 3);
+
+  for (let i = 0; i < count; i++) {
+    const r = 2500 + Math.random() * 4000;
+    const th = Math.random() * Math.PI * 2;
+    const ph = Math.acos(2 * Math.random() - 1);
+    pos[i * 3 + 0] = r * Math.sin(ph) * Math.cos(th);
+    pos[i * 3 + 1] = r * Math.cos(ph);
+    pos[i * 3 + 2] = r * Math.sin(ph) * Math.sin(th);
+
+    const c = new THREE.Color();
+    const rand = Math.random();
+    if (rand < 0.4) {
+      c.setHex(0xffffff);
+    } else if (rand < 0.75) {
+      c.setHex(0xbae6fd);
+    } else {
+      c.setHex(0x38bdf8);
+    }
+    cols[i * 3 + 0] = c.r;
+    cols[i * 3 + 1] = c.g;
+    cols[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(cols, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 2.0,
+    map: pTexture,
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.85
+  });
+  deepUniverseGroup.add(new THREE.Points(geo, mat));
+})();
+
+// ================= MICRO-GALAXIAS LEJANAS (ESPACIO PROFUNDO) =================
+// 7 galaxias espirales miniatura que flotan en la inmensidad del cosmos lejano
+const miniGalaxiesGroup = new THREE.Group();
+scene.add(miniGalaxiesGroup);
+const miniGalaxies = [];
+
+function createMiniGalaxyTexture(type = 0) {
+  const size = 256;
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const ctx = c.getContext('2d');
+  const cx = size / 2, cy = size / 2;
+
+  // Núcleo galáctico brillante
+  const coreGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 26);
+  coreGrad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  coreGrad.addColorStop(0.3, type === 0 ? 'rgba(180, 240, 255, 0.95)' : (type === 1 ? 'rgba(235, 195, 255, 0.95)' : 'rgba(255, 230, 175, 0.95)'));
+  coreGrad.addColorStop(0.7, type === 0 ? 'rgba(0, 160, 255, 0.45)' : (type === 1 ? 'rgba(168, 85, 247, 0.45)' : 'rgba(245, 158, 11, 0.45)'));
+  coreGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 26, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Brazos espirales con polvo estelar
+  const arms = 2;
+  const count = 1100;
+  for (let i = 0; i < count; i++) {
+    const arm = i % arms;
+    const dist = 8 + Math.pow(Math.random(), 1.1) * (size * 0.42);
+    const baseAngle = arm * Math.PI + dist * 0.055;
+    const spread = (Math.random() - 0.5) * (dist * 0.32);
+    const angle = baseAngle + spread / dist;
+    const px = cx + Math.cos(angle) * dist;
+    const py = cy + Math.sin(angle) * dist * 0.65; // Inclinación elíptica
+
+    const pRadius = 0.6 + Math.random() * 1.4;
+    const alpha = Math.max(0.12, 1.0 - (dist / (size * 0.44)));
+
+    ctx.fillStyle = (Math.random() > 0.45)
+      ? `rgba(255, 255, 255, ${alpha * 0.85})`
+      : (type === 0 ? `rgba(56, 189, 248, ${alpha * 0.9})` : (type === 1 ? `rgba(192, 132, 252, ${alpha * 0.9})` : `rgba(251, 191, 36, ${alpha * 0.9})`));
+    ctx.beginPath();
+    ctx.arc(px, py, pRadius, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Resplandor difuso exterior
+  const halo = ctx.createRadialGradient(cx, cy, 20, cx, cy, size * 0.48);
+  halo.addColorStop(0, type === 0 ? 'rgba(0, 160, 255, 0.18)' : 'rgba(168, 85, 247, 0.18)');
+  halo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(0, 0, size, size);
+
+  return new THREE.CanvasTexture(c);
+}
+
+// 7 micro-galaxias repartidas en el espacio profundo (R = 2100 a 3300)
+const galaxyTextures = [
+  createMiniGalaxyTexture(0), // Espiral Azul Cian
+  createMiniGalaxyTexture(1), // Espiral Violeta Púrpura
+  createMiniGalaxyTexture(2)  // Espiral Dorada Ámbar
+];
+
+const MINI_GALAXY_COUNT = 7;
+for (let i = 0; i < MINI_GALAXY_COUNT; i++) {
+  const tex = galaxyTextures[i % galaxyTextures.length];
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.85
+  });
+  const sp = new THREE.Sprite(mat);
+
+  // Escala proporcionada para verse nítida en la distancia
+  const size = 175 + Math.random() * 85;
+  sp.scale.set(size, size, 1);
+
+  // Ubicación esférica en el horizonte lejano
+  const th = (i / MINI_GALAXY_COUNT) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+  const ph = Math.acos(2 * Math.random() - 1);
+  const r = 2100 + Math.random() * 1100;
+
+  sp.position.set(
+    r * Math.sin(ph) * Math.cos(th),
+    r * Math.cos(ph),
+    r * Math.sin(ph) * Math.sin(th)
+  );
+
+  sp.userData = {
+    rotSpeed: (0.0004 + Math.random() * 0.0006) * (i % 2 === 0 ? 1 : -1)
+  };
+
+  miniGalaxiesGroup.add(sp);
+  miniGalaxies.push(sp);
+}
+
+// ================= SISTEMA DE COMETAS / ESTRELLAS FUGACES =================
+// Cometa con cabeza brillante y estela luminosa que cruza el cielo cada 20-30s
+const cometGroup = new THREE.Group();
+scene.add(cometGroup);
+
+function createCometHeadTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  g.addColorStop(0.25, 'rgba(180, 240, 255, 0.9)');
+  g.addColorStop(0.6, 'rgba(0, 160, 255, 0.3)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+  return new THREE.CanvasTexture(c);
+}
+
+const cometHead = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: createCometHeadTexture(),
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false
+}));
+cometHead.scale.set(48, 48, 1);
+cometHead.visible = false;
+cometGroup.add(cometHead);
+
+// Estela del cometa con gradiente degradado
+const TRAIL_LENGTH = 28;
+const trailGeo = new THREE.BufferGeometry();
+const trailPositions = new Float32Array(TRAIL_LENGTH * 3);
+const trailColors = new Float32Array(TRAIL_LENGTH * 3);
+for (let i = 0; i < TRAIL_LENGTH; i++) {
+  const alpha = 1.0 - (i / TRAIL_LENGTH);
+  trailColors[i * 3 + 0] = 0.5 + 0.5 * alpha;
+  trailColors[i * 3 + 1] = 0.8 + 0.2 * alpha;
+  trailColors[i * 3 + 2] = 1.0;
+}
+trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+trailGeo.setAttribute('color', new THREE.BufferAttribute(trailColors, 3));
+
+const trailMat = new THREE.LineBasicMaterial({
+  vertexColors: true,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  linewidth: 3,
+  opacity: 0
+});
+const cometTrail = new THREE.Line(trailGeo, trailMat);
+cometGroup.add(cometTrail);
+
+const cometState = {
+  active: false,
+  timer: 5.0, // El primer cometa cruza a los 5 segundos para apreciarlo de inmediato
+  progress: 0,
+  duration: 2.2,
+  startPos: new THREE.Vector3(),
+  endPos: new THREE.Vector3(),
+  currentPos: new THREE.Vector3(),
+  history: []
+};
+
+function launchComet() {
+  cometState.active = true;
+  cometState.progress = 0;
+  cometState.duration = 1.9 + Math.random() * 0.7; // 1.9s a 2.6s
+  cometState.history = [];
+
+  // Posición inicial en el espacio cósmico
+  const th = Math.random() * Math.PI * 2;
+  const ph = 0.35 + Math.random() * 0.8;
+  const r = 850 + Math.random() * 200;
+
+  cometState.startPos.set(
+    r * Math.sin(ph) * Math.cos(th),
+    r * Math.cos(ph),
+    r * Math.sin(ph) * Math.sin(th)
+  );
+
+  // Trayectoria elegante cruzando el cielo
+  const dir = new THREE.Vector3(
+    (Math.random() - 0.5) * 1.5,
+    -0.4 - Math.random() * 0.6,
+    (Math.random() - 0.5) * 1.5
+  ).normalize();
+
+  const distance = 800 + Math.random() * 400;
+  cometState.endPos.copy(cometState.startPos).addScaledVector(dir, distance);
+  cometHead.visible = true;
+}
+
+function updateComet(dt) {
+  if (!cometState.active) {
+    cometState.timer -= dt;
+    if (cometState.timer <= 0) {
+      launchComet();
+    }
+    return;
+  }
+
+  cometState.progress += dt / cometState.duration;
+  const p = cometState.progress;
+
+  if (p >= 1.0) {
+    cometState.active = false;
+    cometHead.visible = false;
+    trailMat.opacity = 0;
+    // Siguiente cometa aleatorio cada 20 a 30 segundos
+    cometState.timer = 20.0 + Math.random() * 12.0;
+    return;
+  }
+
+  // Curva de visibilidad (aparece, brilla y se desvanece suavemente)
+  let opacity = 1.0;
+  if (p < 0.18) {
+    opacity = p / 0.18;
+  } else if (p > 0.65) {
+    opacity = 1.0 - (p - 0.65) / 0.35;
+  }
+  cometHead.material.opacity = opacity;
+  trailMat.opacity = opacity * 0.88;
+
+  // Desplazamiento del cometa
+  cometState.currentPos.lerpVectors(cometState.startPos, cometState.endPos, p);
+  cometHead.position.copy(cometState.currentPos);
+
+  // Registro de la cola luminosa
+  cometState.history.unshift(cometState.currentPos.clone());
+  if (cometState.history.length > TRAIL_LENGTH) {
+    cometState.history.pop();
+  }
+
+  const posArr = trailGeo.attributes.position.array;
+  for (let i = 0; i < TRAIL_LENGTH; i++) {
+    const pt = cometState.history[i] || cometState.currentPos;
+    posArr[i * 3 + 0] = pt.x;
+    posArr[i * 3 + 1] = pt.y;
+    posArr[i * 3 + 2] = pt.z;
+  }
+  trailGeo.attributes.position.needsUpdate = true;
+}
+
+// ================= EL CORAZÓN 3D EXPLOSIVO Y ELEGANTE =================
+const heartGroup = new THREE.Group();
+scene.add(heartGroup);
+
+// Estructura volumétrica y de contorno brillante
+const TOTAL_HEART_POINTS = 7200;
+const heartGeo = new THREE.BufferGeometry();
+const heartPositions = new Float32Array(TOTAL_HEART_POINTS * 3);
+const heartBasePos = new Float32Array(TOTAL_HEART_POINTS * 3);
+const heartNormals = new Float32Array(TOTAL_HEART_POINTS * 3);
+const heartColors = new Float32Array(TOTAL_HEART_POINTS * 3);
+const heartBaseColors = new Float32Array(TOTAL_HEART_POINTS * 3);
+const heartParticlePhase = new Float32Array(TOTAL_HEART_POINTS);
+
+for (let i = 0; i < TOTAL_HEART_POINTS; i++) {
+  const t = Math.random() * Math.PI * 2;
+  const phi = (Math.random() - 0.5) * Math.PI;
+
+  // Ecuación paramétrica de corazón 3D
+  let x = 16 * Math.pow(Math.sin(t), 3);
+  let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t) + 2.2;
+  let z = 8.5 * Math.sin(phi) * (0.35 + 0.65 * Math.abs(Math.sin(t)));
+
+  // Diferenciación: Contorno denso cristalino vs. Relleno volumétrico interno
+  const isShell = Math.random() > 0.35;
+  const vol = isShell ? (0.94 + Math.random() * 0.1) : Math.pow(Math.random(), 0.55);
+  
+  const scale = 2.85;
+  x *= vol * scale;
+  y *= vol * scale;
+  z *= vol * scale;
+
+  // Normal aproximada hacia afuera para la explosión rítmica
+  const len = Math.hypot(x, y, z) || 1;
+  const nx = x / len;
+  const ny = y / len;
+  const nz = z / len;
+
+  heartPositions[i * 3 + 0] = x;
+  heartPositions[i * 3 + 1] = y;
+  heartPositions[i * 3 + 2] = z;
+
+  heartBasePos[i * 3 + 0] = x;
+  heartBasePos[i * 3 + 1] = y;
+  heartBasePos[i * 3 + 2] = z;
+
+  heartNormals[i * 3 + 0] = nx;
+  heartNormals[i * 3 + 1] = ny;
+  heartNormals[i * 3 + 2] = nz;
+
+  heartParticlePhase[i] = Math.random() * Math.PI * 2;
+
+  // Colores: Blanco diamante brillante en el contorno, Azul Eléctrico y Cian en el centro
+  const col = new THREE.Color();
+  if (isShell && Math.random() > 0.4) {
+    col.setHex(0xffffff); // Destello diamante
+  } else if (Math.random() > 0.35) {
+    col.setHex(0x00e5ff); // Cian neón radiante
+  } else {
+    col.setHex(0x1e90ff); // Azul Hot Wheels eléctrico
+  }
+
+  heartColors[i * 3 + 0] = col.r;
+  heartColors[i * 3 + 1] = col.g;
+  heartColors[i * 3 + 2] = col.b;
+
+  heartBaseColors[i * 3 + 0] = col.r;
+  heartBaseColors[i * 3 + 1] = col.g;
+  heartBaseColors[i * 3 + 2] = col.b;
+}
+
+heartGeo.setAttribute('position', new THREE.BufferAttribute(heartPositions, 3));
+heartGeo.setAttribute('color', new THREE.BufferAttribute(heartColors, 3));
+
+const heartMaterial = new THREE.PointsMaterial({
+  size: 3.2,
+  map: pTexture,
+  vertexColors: true,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  opacity: 0.98
+});
+const heartMesh = new THREE.Points(heartGeo, heartMaterial);
+heartGroup.add(heartMesh);
+
+// Halo de Luz y Resplandor Central (Sutil, suave y elegante, sin deslumbrar la vista)
+function makeHeartGlowTexture(size = 256) {
+  const c = document.createElement('canvas');
+  c.width = size; c.height = size;
+  const g = c.getContext('2d');
+  const grad = g.createRadialGradient(size/2, size/2, 0, size/2, size/2, size/2);
+  grad.addColorStop(0, 'rgba(56, 189, 248, 0.28)');
+  grad.addColorStop(0.35, 'rgba(14, 116, 144, 0.15)');
+  grad.addColorStop(0.7, 'rgba(3, 30, 70, 0.04)');
+  grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  g.fillStyle = grad;
+  g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+}
+const heartGlowSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+  map: makeHeartGlowTexture(),
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  opacity: 0.32
+}));
+heartGlowSprite.scale.set(95, 95, 1);
+heartGroup.add(heartGlowSprite);
+
+// ================= DESTELLOS DIAMANTE (GEM FLARES) EN EL CONTORNO =================
+function makeDiamondFlareTexture() {
+  const c = document.createElement('canvas');
+  c.width = 64; c.height = 64;
+  const ctx = c.getContext('2d');
+  const cx = 32, cy = 32;
+
+  const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 30);
+  g.addColorStop(0, 'rgba(255, 255, 255, 1)');
+  g.addColorStop(0.25, 'rgba(180, 240, 255, 0.85)');
+  g.addColorStop(0.55, 'rgba(56, 189, 248, 0.25)');
+  g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 64, 64);
+
+  // Cruz estelar de 4 puntas estilo diamante facetado
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+  ctx.lineWidth = 1.3;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - 26); ctx.lineTo(cx, cy + 26);
+  ctx.moveTo(cx - 26, cy); ctx.lineTo(cx + 26, cy);
+  ctx.stroke();
+
+  return new THREE.CanvasTexture(c);
+}
+const diamondFlareTex = makeDiamondFlareTexture();
+const diamondFlares = [];
+
+const flareAngles = [
+  0, Math.PI * 0.18, Math.PI * 0.35, Math.PI * 0.5, Math.PI * 0.65, Math.PI * 0.82,
+  Math.PI, Math.PI * 1.18, Math.PI * 1.35, Math.PI * 1.5, Math.PI * 1.65, Math.PI * 1.82
+];
+
+flareAngles.forEach((t, idx) => {
+  const x = 16 * Math.pow(Math.sin(t), 3) * 2.88;
+  const y = (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t) + 2.2) * 2.88;
+  const z = (Math.sin(t * 3) > 0 ? 1 : -1) * 7.5;
+
+  const mat = new THREE.SpriteMaterial({
+    map: diamondFlareTex,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.65
+  });
+  const sp = new THREE.Sprite(mat);
+  const baseSize = 8.5 + (idx % 3) * 2.5;
+  sp.scale.set(baseSize, baseSize, 1);
+  sp.position.set(x, y, z);
+  sp.userData = {
+    baseSize: baseSize,
+    phase: Math.random() * Math.PI * 2,
+    basePos: new THREE.Vector3(x, y, z)
+  };
+  heartGroup.add(sp);
+  diamondFlares.push(sp);
+});
+
+// ================= CHISPAS / BRASAS CELESTIALES FLOTANTES =================
+// Delicadas micro-partículas estelares que emanan del corazón y ascienden al cosmos
+const EMBER_COUNT = 150;
+const emberGeo = new THREE.BufferGeometry();
+const emberPositions = new Float32Array(EMBER_COUNT * 3);
+const emberColors = new Float32Array(EMBER_COUNT * 3);
+const emberData = [];
+
+for (let i = 0; i < EMBER_COUNT; i++) {
+  const t = Math.random() * Math.PI * 2;
+  const hx = 16 * Math.pow(Math.sin(t), 3) * 2.5 * Math.random();
+  const hy = (13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t) + 2.2) * 2.5 * Math.random();
+  const hz = (Math.random() - 0.5) * 24;
+
+  emberPositions[i * 3 + 0] = hx;
+  emberPositions[i * 3 + 1] = hy;
+  emberPositions[i * 3 + 2] = hz;
+
+  const c = new THREE.Color();
+  const rnd = Math.random();
+  if (rnd < 0.45) c.setHex(0xffffff); // Diamante
+  else if (rnd < 0.8) c.setHex(0x38bdf8); // Cian neón
+  else c.setHex(0x93c5fd); // Azul suave
+
+  emberColors[i * 3 + 0] = c.r;
+  emberColors[i * 3 + 1] = c.g;
+  emberColors[i * 3 + 2] = c.b;
+
+  emberData.push({
+    x: hx,
+    y: hy,
+    z: hz,
+    vy: 0.28 + Math.random() * 0.42,
+    driftSpeed: 1.2 + Math.random() * 1.5,
+    driftPhase: Math.random() * Math.PI * 2,
+    maxHeight: hy + 38 + Math.random() * 35
+  });
+}
+
+emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPositions, 3));
+emberGeo.setAttribute('color', new THREE.BufferAttribute(emberColors, 3));
+
+const emberMat = new THREE.PointsMaterial({
+  size: 2.4,
+  map: pTexture,
+  vertexColors: true,
+  transparent: true,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+  opacity: 0.82
+});
+const emberMesh = new THREE.Points(emberGeo, emberMat);
+heartGroup.add(emberMesh);
+
+// ================= ANILLOS CÓSMICOS DE VELOCIDAD (DUAL SPEEDWAY) =================
+function createSpeedwayRing() {
+  const count = 1600;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    const r = 85 + (Math.random() - 0.5) * 12;
+    pos[i * 3 + 0] = Math.cos(angle) * r;
+    pos[i * 3 + 1] = (Math.random() - 0.5) * 3;
+    pos[i * 3 + 2] = Math.sin(angle) * r;
+
+    const c = new THREE.Color();
+    c.setHSL(0.55 + Math.random() * 0.06, 0.9, 0.65 + Math.random() * 0.25);
+    col[i * 3 + 0] = c.r;
+    col[i * 3 + 1] = c.g;
+    col[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 2.2,
+    map: pTexture,
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const ring = new THREE.Points(geo, mat);
+  ring.rotation.x = Math.PI * 0.32;
+  ring.rotation.z = Math.PI * 0.15;
+  return ring;
+}
+const speedwayRing = createSpeedwayRing();
+scene.add(speedwayRing);
+
+// Anillo interior entrelazado de contra-rotación
+function createSpeedwayInnerRing() {
+  const count = 900;
+  const geo = new THREE.BufferGeometry();
+  const pos = new Float32Array(count * 3);
+  const col = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const angle = (i / count) * Math.PI * 2;
+    const r = 68 + (Math.random() - 0.5) * 8;
+    pos[i * 3 + 0] = Math.cos(angle) * r;
+    pos[i * 3 + 1] = (Math.random() - 0.5) * 2.5;
+    pos[i * 3 + 2] = Math.sin(angle) * r;
+
+    const c = new THREE.Color();
+    c.setHSL(0.52 + Math.random() * 0.08, 0.95, 0.7 + Math.random() * 0.25);
+    col[i * 3 + 0] = c.r;
+    col[i * 3 + 1] = c.g;
+    col[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const mat = new THREE.PointsMaterial({
+    size: 1.8,
+    map: pTexture,
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    opacity: 0.75
+  });
+  const ring = new THREE.Points(geo, mat);
+  ring.rotation.x = -Math.PI * 0.28;
+  ring.rotation.z = -Math.PI * 0.12;
+  return ring;
+}
+const speedwayInnerRing = createSpeedwayInnerRing();
+scene.add(speedwayInnerRing);
+
+// ================= FLOTA DE AUTOS HOT WHEELS (MODELOS REALES) =================
+const hotWheelsCarSources = (window.HOTWHEELS_CARS && window.HOTWHEELS_CARS.length > 0)
+  ? window.HOTWHEELS_CARS
+  : CONFIG.fotos;
+
+// Pre-cargar imágenes para dibujarlas en el canvas de cada frase y en los sprites 3D
+const loadedCarImages = hotWheelsCarSources.map(src => {
+  const im = new Image();
+  im.src = src;
+  return im;
+});
+
+// ================= FRASES FLOTANTES CON CARRO HOT WHEELS A LA IZQUIERDA =================
+const frasesBase = CONFIG.frases;
+const WORD_SLOTS = 140;
+const WORDS = Array.from({ length: WORD_SLOTS }, (_, i) => frasesBase[i % frasesBase.length]);
+
+function makeTextTexture(text, glowColor, carImg) {
+  const c = document.createElement('canvas');
+  c.width = 720;
+  c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, c.width, c.height);
+
+  let textStartX = 24;
+
+  // Dibujar el auto Hot Wheels real a la izquierda de las letras
+  if (carImg && (carImg.naturalWidth || carImg.width)) {
+    const aspect = (carImg.naturalWidth / carImg.naturalHeight) || 3.4;
+    const carH = 46;
+    const carW = carH * aspect;
+    const carY = (c.height - carH) / 2;
+
+    ctx.save();
+    ctx.shadowColor = glowColor;
+    ctx.shadowBlur = 18;
+    ctx.drawImage(carImg, 20, carY, carW, carH);
+    ctx.restore();
+
+    textStartX = 20 + carW + 18;
+  }
+
+  // Dibujar el texto a la derecha del auto con brillo neón
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = glowColor;
+  ctx.shadowBlur = 24;
+
+  const maxTextWidth = c.width - textStartX - 24;
+  let fontSize = 46;
+  ctx.font = fontSize + "px 'Indie Flower', cursive";
+  while (ctx.measureText(text).width > maxTextWidth && fontSize > 20) {
+    fontSize -= 2;
+    ctx.font = fontSize + "px 'Indie Flower', cursive";
+  }
+  ctx.fillText(text, textStartX, c.height / 2);
+
+  return new THREE.CanvasTexture(c);
+}
+
+const TEXT_COLORS = ['#00e5ff', '#1e90ff', '#38bdf8', '#7dd3fc', '#00cfff', '#60a5fa'];
+const textGroup = new THREE.Group();
+scene.add(textGroup);
+
+// Esperar a que la fuente y las imágenes estén listas antes de estampar
+Promise.all([
+  document.fonts.load("40px 'Indie Flower'"),
+  ...loadedCarImages.map(im => new Promise(res => {
+    if (im.complete && im.naturalWidth > 0) res();
+    else {
+      im.onload = res;
+      im.onerror = res;
+    }
+  }))
+]).then(() => {
+  for (let i = 0; i < WORDS.length; i++) {
+    const carImg = loadedCarImages[i % loadedCarImages.length];
+    const tex = makeTextTexture(WORDS[i], TEXT_COLORS[i % TEXT_COLORS.length], carImg);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(78, 13.8, 1);
+    
+    // Frases en la misma esfera orbital que los autos (R = 150 a 275)
+    const phi = Math.acos(2 * Math.random() - 1);
+    const theta = Math.random() * Math.PI * 2;
+    const r = 150 + Math.random() * 125;
+    sp.position.set(r * Math.sin(phi) * Math.cos(theta), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(theta));
+    sp.userData = { phi, theta, radius: r, speed: 0.0007 + Math.random() * 0.0009 };
+    textGroup.add(sp);
+  }
+});
+
+// ================= FLOTA DE AUTOS HOT WHEELS 3D ORBITALES =================
+const carGroup = new THREE.Group();
+scene.add(carGroup);
+
+const CAR_COUNT = 34;
+const carSprites = [];
+const FOTO_ESCALA = (/Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 768) ? 1.35 : 1;
+
+for (let i = 0; i < CAR_COUNT; i++) {
+  const carIndex = i % hotWheelsCarSources.length;
+  const src = hotWheelsCarSources[carIndex];
+
+  // BaseWidth generosa para que los autos se vean espectaculares y claros
+  const baseWidth = (54 + (i % 6) * 5) * FOTO_ESCALA;
+
+  const img = new Image();
+  const tex = new THREE.Texture(img);
+  const mat = new THREE.SpriteMaterial({
+    map: tex,
+    transparent: true,
+    depthWrite: false
+  });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(baseWidth, baseWidth * 0.32, 1);
+
+  img.onload = function() {
+    tex.needsUpdate = true;
+    const aspect = img.naturalWidth / img.naturalHeight || 3.4;
+    sp.scale.set(baseWidth, baseWidth / aspect, 1);
+  };
+  img.src = src;
+
+  // Órbita de los carritos: Junto a las frases (R = 145 a 275)
+  // Al igual que en la plantilla original, los autos flotan directamente al lado de las letras
+  const phi = Math.acos(2 * Math.random() - 1);
+  const theta = Math.random() * Math.PI * 2;
+  const radius = 145 + Math.random() * 130;
+
+  sp.position.set(
+    radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
+  );
+
+  // Los autos rotan en concordancia a su dirección
+  const isClockwise = (i % 2 === 0);
+  sp.userData = {
+    phi: phi,
+    theta: theta,
+    radius: radius,
+    speed: (0.0007 + Math.random() * 0.001) * (isClockwise ? 1 : -1),
+    yFloatOffset: Math.random() * Math.PI * 2,
+    baseWidth: baseWidth
+  };
+
+  carGroup.add(sp);
+  carSprites.push(sp);
+}
+
+// ================= CONTROLES DE CÁMARA E INTERACCIÓN =================
+function onPointerDown(e) {
+  isPointerDown = true;
+  velX = 0; velY = 0;
+  const t = e.touches ? e.touches[0] : e;
+  startX = t.clientX;
+  startY = t.clientY;
+}
+
+function onPointerMove(e) {
+  if (!isPointerDown) return;
+  if (e.touches && e.touches.length > 1) return;
+  const t = e.touches ? e.touches[0] : e;
+  const dx = t.clientX - startX;
+  const dy = t.clientY - startY;
+  const sensX = (Math.PI * 1.6) / window.innerWidth;
+  const sensY = (Math.PI * 0.9) / window.innerHeight;
+  velY = -dx * sensX;
+  velX = dy * sensY;
+  targetRotY += velY;
+  targetRotX = Math.max(-1.3, Math.min(1.3, targetRotX + velX));
+  startX = t.clientX;
+  startY = t.clientY;
+}
+
+function onPointerUp() {
+  isPointerDown = false;
+}
+
+window.addEventListener('mousedown', onPointerDown);
+window.addEventListener('mousemove', onPointerMove);
+window.addEventListener('mouseup', onPointerUp);
+window.addEventListener('touchstart', onPointerDown, { passive: true });
+window.addEventListener('touchmove', onPointerMove, { passive: true });
+window.addEventListener('touchend', onPointerUp, { passive: true });
+
+// Zoom suave
+window.addEventListener('wheel', (e) => {
+  targetDist += e.deltaY * 0.28;
+  targetDist = Math.max(120, Math.min(850, targetDist));
+}, { passive: true });
+
+// Pellizco en móviles
+let pinchDist = 0;
+window.addEventListener('touchmove', (e) => {
+  if (e.touches && e.touches.length === 2) {
+    e.preventDefault();
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const d = Math.hypot(dx, dy);
+    if (pinchDist) {
+      targetDist += (pinchDist - d) * 0.6;
+      targetDist = Math.max(120, Math.min(850, targetDist));
+    }
+    pinchDist = d;
+  }
+}, { passive: false });
+window.addEventListener('touchend', () => { pinchDist = 0; }, { passive: true });
+
+// ================= BUCLE PRINCIPAL DE ANIMACIÓN =================
+const clock = new THREE.Clock();
+const INERTIA_DECAY = 0.90;
+
+let lastFrameTime = 0;
+let smoothBeat = 0;
+
+function animate() {
+  requestAnimationFrame(animate);
+  const elapsedTime = clock.getElapsedTime();
+  const dt = Math.min(0.05, Math.max(0.001, elapsedTime - lastFrameTime));
+  lastFrameTime = elapsedTime;
+
+  // Inercia de rotación al soltar
+  if (!isPointerDown) {
+    velX *= INERTIA_DECAY;
+    velY *= INERTIA_DECAY;
+    targetRotX = Math.max(-1.3, Math.min(1.3, targetRotX + velX));
+    targetRotY += velY;
+  }
+  rotX += (targetRotX - rotX) * 0.12;
+  rotY += (targetRotY - rotY) * 0.12;
+
+  // Sincronización rítmica musical de precisión con la canción
+  let targetBeat = 0;
+
+  if (isAudioPlaying && !audio.paused && (audio.currentTime > 0 || audio.duration > 0)) {
+    const bpm = CONFIG.bpm || 76;
+    const secondsPerBeat = 60.0 / bpm;
+    const beatPhase = (audio.currentTime / secondsPerBeat) % 1.0;
+
+    // Curva cardíaca anatómica y musical: Lub-Dub (Sístole + Diástole + Reposo)
+    if (beatPhase < 0.18) {
+      // 1. Sístole ventricular (Golpe principal rítmico, rápido y enérgico)
+      targetBeat = Math.sin((beatPhase / 0.18) * Math.PI);
+    } else if (beatPhase >= 0.22 && beatPhase < 0.38) {
+      // 2. Diástole (Segundo latido o eco armónico de menor intensidad)
+      targetBeat = Math.sin(((beatPhase - 0.22) / 0.16) * Math.PI) * 0.52;
+    } else {
+      // 3. Pausa de reposo (permite contemplar las estrellas y frases en calma)
+      targetBeat = 0;
+    }
+  } else {
+    // Si la música está en pausa, mantener un latido sutil de reposo
+    const restCycle = (elapsedTime * 1.1) % 1.0;
+    if (restCycle < 0.18) {
+      targetBeat = Math.sin((restCycle / 0.18) * Math.PI) * 0.65;
+    } else if (restCycle >= 0.22 && restCycle < 0.38) {
+      targetBeat = Math.sin(((restCycle - 0.22) / 0.16) * Math.PI) * 0.35;
+    } else {
+      targetBeat = 0;
+    }
+  }
+
+  // Interpolación lerp suave para un latido elástico, orgánico y continuo
+  smoothBeat += (targetBeat - smoothBeat) * 0.26;
+
+  // Factor de escala del corazón: latido elegante (crece hasta +11% en el pico de sístole)
+  const heartScale = 1.0 + smoothBeat * 0.11;
+  heartGroup.scale.set(heartScale, heartScale, heartScale);
+
+  // Balanceo orgánico sutil en el espacio (efecto ingravidez cósmica)
+  heartGroup.rotation.y = elapsedTime * 0.055;
+  heartGroup.rotation.x = Math.sin(elapsedTime * 0.7) * 0.055;
+  heartGroup.rotation.z = Math.cos(elapsedTime * 0.6) * 0.035;
+
+  // Respiración suave y onda de luz ascendente en cada latido
+  const positions = heartGeo.attributes.position.array;
+  const colors = heartGeo.attributes.color.array;
+  const particleExpansion = smoothBeat * 0.45;
+
+  // Altura de la onda lumínica que viaja por el corazón en cada latido (desde el ápice a los lóbulos)
+  const waveY = -42 + smoothBeat * 88;
+  const waveWidth = 24.0;
+
+  for (let i = 0; i < TOTAL_HEART_POINTS; i++) {
+    const idx = i * 3;
+    const bx = heartBasePos[idx + 0];
+    const by = heartBasePos[idx + 1];
+    const bz = heartBasePos[idx + 2];
+    const nx = heartNormals[idx + 0];
+    const ny = heartNormals[idx + 1];
+    const nz = heartNormals[idx + 2];
+
+    const shimmer = Math.sin(elapsedTime * 3.5 + heartParticlePhase[i]) * 0.25;
+    positions[idx + 0] = bx + nx * (particleExpansion + shimmer);
+    positions[idx + 1] = by + ny * (particleExpansion + shimmer);
+    positions[idx + 2] = bz + nz * (particleExpansion + shimmer);
+
+    // Destello de onda de luz musical ascendente
+    const distToWave = Math.abs(by - waveY);
+    let waveBoost = 0;
+    if (distToWave < waveWidth && smoothBeat > 0.02) {
+      waveBoost = (1 - distToWave / waveWidth) * smoothBeat * 0.42;
+    }
+
+    const br = heartBaseColors[idx + 0];
+    const bg = heartBaseColors[idx + 1];
+    const bb = heartBaseColors[idx + 2];
+    colors[idx + 0] = Math.min(1.0, br + waveBoost * 0.95);
+    colors[idx + 1] = Math.min(1.0, bg + waveBoost * 0.85);
+    colors[idx + 2] = Math.min(1.0, bb + waveBoost * 0.50);
+  }
+  heartGeo.attributes.position.needsUpdate = true;
+  heartGeo.attributes.color.needsUpdate = true;
+
+  // Actualizar chispas / brasas celestiales flotantes que emanan del corazón
+  const ePos = emberGeo.attributes.position.array;
+  for (let i = 0; i < EMBER_COUNT; i++) {
+    const d = emberData[i];
+    d.y += d.vy * (1 + smoothBeat * 1.4);
+    d.x += Math.sin(elapsedTime * d.driftSpeed + d.driftPhase) * 0.16;
+    d.z += Math.cos(elapsedTime * d.driftSpeed + d.driftPhase) * 0.16;
+
+    if (d.y > d.maxHeight) {
+      const t = Math.random() * Math.PI * 2;
+      d.x = 16 * Math.pow(Math.sin(t), 3) * 2.2 * Math.random();
+      d.y = ((13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t) + 2.2) * 2.2 * Math.random()) - 15;
+      d.z = (Math.random() - 0.5) * 20;
+      d.maxHeight = d.y + 38 + Math.random() * 38;
+    }
+
+    ePos[i * 3 + 0] = d.x;
+    ePos[i * 3 + 1] = d.y;
+    ePos[i * 3 + 2] = d.z;
+  }
+  emberGeo.attributes.position.needsUpdate = true;
+
+  // Destellos diamante en el contorno del corazón (titileo sutil de gemas)
+  for (let i = 0; i < diamondFlares.length; i++) {
+    const df = diamondFlares[i];
+    const tw = Math.sin(elapsedTime * 2.6 + df.userData.phase);
+    const sz = df.userData.baseSize * (0.8 + tw * 0.32 + smoothBeat * 0.35);
+    df.scale.set(sz, sz, 1);
+    df.material.opacity = 0.35 + 0.35 * tw + smoothBeat * 0.28;
+  }
+
+  // Resplandor celestial suave detrás del corazón (atenuado y elegante, sin deslumbrar la vista)
+  const glowFlash = 95 * (1 + smoothBeat * 0.16);
+  heartGlowSprite.scale.set(glowFlash, glowFlash, 1);
+  heartGlowSprite.material.opacity = 0.28 + smoothBeat * 0.14;
+
+  // Giro de los elementos cósmicos
+  speedwayRing.rotation.z += 0.003;
+  speedwayInnerRing.rotation.z -= 0.004;
+  deepUniverseGroup.rotation.y = elapsedTime * 0.005;
+
+  // Giro elegante de las micro-galaxias lejanas en su propio eje
+  miniGalaxies.forEach(mg => {
+    mg.material.rotation += mg.userData.rotSpeed;
+  });
+
+  // Animación del cometa / estrella fugaz periódica
+  updateComet(dt);
+
+  // Animación orbital de frases con oscilación suave
+  textGroup.children.forEach(sp => {
+    sp.userData.theta += sp.userData.speed;
+    sp.material.opacity = 0.84 + 0.16 * Math.sin(elapsedTime * 2.0 + sp.userData.radius);
+    sp.position.x = sp.userData.radius * Math.sin(sp.userData.phi) * Math.cos(sp.userData.theta);
+    sp.position.z = sp.userData.radius * Math.sin(sp.userData.phi) * Math.sin(sp.userData.theta);
+  });
+
+  // Animación orbital y navegación de los autos Hot Wheels
+  carSprites.forEach(sp => {
+    sp.userData.theta += sp.userData.speed;
+    const floatY = Math.sin(elapsedTime * 1.6 + sp.userData.yFloatOffset) * 4.5;
+    sp.position.x = sp.userData.radius * Math.sin(sp.userData.phi) * Math.cos(sp.userData.theta);
+    sp.position.y = sp.userData.radius * Math.cos(sp.userData.phi) + floatY;
+    sp.position.z = sp.userData.radius * Math.sin(sp.userData.phi) * Math.sin(sp.userData.theta);
+  });
+
+  // Interpolación de la cámara (Zoom + Rotación esférica)
+  currentDist += (targetDist - currentDist) * 0.07;
+  const cx = Math.cos(rotX), sx = Math.sin(rotX);
+  const cy = Math.cos(rotY), sy = Math.sin(rotY);
+  camera.position.set(currentDist * sy * cx, currentDist * sx, currentDist * cy * cx);
+  camera.lookAt(0, 0, 0);
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// ================= REDIMENSIONAMIENTO RESPONSIVE =================
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+// ================= INICIO DE EXPERIENCIA AL TOCAR PANTALLA =================
+const startScreen = document.getElementById('start-screen');
+function startExperience() {
+  startScreen.classList.add('hidden');
+  setTimeout(() => startScreen.style.display = 'none', 850);
+
+  // Iniciar audio con soporte nativo
+  audio.play().then(() => {
+    isAudioPlaying = true;
+    updateSoundButtonUI(true);
+  }).catch((err) => {
+    console.log("Audio play info:", err);
+    updateSoundButtonUI(false);
+  });
+}
+startScreen.addEventListener('click', startExperience);
+startScreen.addEventListener('touchend', startExperience);
+
+</script>
+</body>
+</html>
